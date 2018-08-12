@@ -193,7 +193,10 @@ export default (appConfigProvider: ConfigurationDataProvider) => {
             );
         } else if (authType === "basic") {
             ctxLogger.warn("Authentication type is: %s", authType);
-            basicAuthentHandler = basicAuthentHandlerProvider(builtinAuthenticationSource, getAllPrivilegesForUser);
+            basicAuthentHandler = basicAuthentHandlerProvider(
+                builtinAuthenticationSource(null),
+                getAllPrivilegesForUser
+            );
             loginHandler = basicAuthentHandler;
         } else {
             throw new Error(`Unexpected authentication type: ${authType}`);

@@ -1,8 +1,8 @@
 import { Observable } from "rxjs";
 
-export interface ICredentials {
+export interface Credentials {
     readonly username: string;
     readonly password: string;
 }
 
-export type AuthenticationDataSource = (credentials: ICredentials) => Observable<boolean>;
+export type Authenticator = (credentials: Credentials) => Observable<boolean>;

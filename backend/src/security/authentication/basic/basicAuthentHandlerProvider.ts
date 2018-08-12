@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction, Handler } from "express";
 import { Observable } from "rxjs";
-import { AuthenticationDataSource } from "../common";
+import { Authenticator } from "../common";
 import logger from "../../../utils/logger";
 import { storeAuthentication, Authentication, GetAllPrivilegesForUser } from "../../common";
 
@@ -21,7 +21,7 @@ const getCredentials: (req: Request) => {username: string, password: string}
 };
 
 export type BasicAuthenticationHandlerProvider = (
-    authenticationDatasource: AuthenticationDataSource,
+    authenticationDatasource: Authenticator,
     getAllPrivilegesForUser: GetAllPrivilegesForUser) => Handler;
 
 const basicAuthenticationHandlerProvider: BasicAuthenticationHandlerProvider
