@@ -17,11 +17,11 @@ export type DescribeIcon = (iconName: string) => Observable<IconDescriptor>;
 type GetIconFile = (iconName: string, fileFormat: string, iconSize: string) => Observable<Buffer>;
 type CreateIcon = (
     initialIconFileInfo: IconFile,
-    modifiedBy: string) => Observable<number>;
+    modifiedBy: string) => Observable<IconDescriptor>;
 type UpdateIcon = (
     oldIconName: string,
     newIcon: IconAttributes,
-    modifiedBy: string) => Observable<void>;
+    modifiedBy: string) => Observable<IconDescriptor>;
 type DeleteIcon = (
     iconName: string,
     modifiedBy: string

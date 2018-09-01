@@ -3,7 +3,7 @@ import { randomBytes } from "crypto";
 import { privilegeDictionary } from "../../src/security/authorization/privileges/priv-config";
 import { createIcon, setAuth, RequestBuilder, addIconFile } from "./api-client";
 import { List } from "immutable";
-import { IconFileData, IconFile } from "../../src/icon";
+import { IconFileData, IconFile, IconDescriptor } from "../../src/icon";
 import { clone } from "../../src/utils/clone";
 
 export interface Icon {
@@ -85,7 +85,7 @@ type TestDataDescriptor = typeof testDataDescriptor;
 
 export const getTestDataDescriptor: () => TestDataDescriptor = () => clone(testDataDescriptor);
 
-export const createInitialIconFile: (requestBuilder: RequestBuilder, iconFile: IconFile) => Observable<number>
+export const createInitialIconFile: (requestBuilder: RequestBuilder, iconFile: IconFile) => Observable<IconDescriptor>
 = (requestBuilder, iconFile) => {
     const privileges = [
         privilegeDictionary.CREATE_ICON

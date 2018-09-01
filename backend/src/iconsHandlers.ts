@@ -112,8 +112,8 @@ const iconHandlersProvider: (iconService: IconService) => IconHanlders
         iconService.createIcon(iconData, getAuthentication(req.session).username)
         .subscribe(
             result => {
-                ctxLogger.info("Icon #%d created: %o", result, iconData);
-                res.status(201).send({iconId: result}).end();
+                ctxLogger.info("Icon '%s' created: %o", result.name, iconData);
+                res.status(201).send(result).end();
             },
             error => {
                 ctxLogger.error("An error occurred while creating icon %o: %o", iconData, error);
@@ -135,8 +135,12 @@ const iconHandlersProvider: (iconService: IconService) => IconHanlders
             iconService.updateIcon(oldIconName, newIcon, getAuthentication(req.session).username)
             .subscribe(
                 result => {
-                    ctxLogger.info("Icon #%d updated: %o", result, newIcon);
-                    res.status(204).send({iconId: result}).end();
+                    const dto = {
+                        name: result.name,
+                        iconFiles: result.iconFiles.toJS()
+                    };
+                    ctxLogger.info( "Icon '%s' updated: %o", oldIconName, dto);
+                    res.status(204).send({zazi: "metro"}).end();
                 },
                 error => {
                     ctxLogger.error("An error occurred while updating icon %o: %o", oldIconName, error);

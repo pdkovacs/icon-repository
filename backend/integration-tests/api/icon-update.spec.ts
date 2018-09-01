@@ -7,10 +7,11 @@ import { privilegeDictionary } from "../../src/security/authorization/privileges
 
 import { setAuth, describeAllIcons, updateIcon } from "./api-client";
 import { getTestIconData, getTestDataDescriptor, addTestData } from "./icon-api-test-utils";
-import { IconAttributes } from "../../src/icon";
+import { IconAttributes, IconDescriptor } from "../../src/icon";
 import { assertGitCleanStatus, assertFileInRepo, assertFileNotInRepo } from "../git/git-test-utils";
+import { Set } from "immutable";
 
-describe(iconEndpointPath, () => {
+fdescribe(iconEndpointPath, () => {
 
     const agent = manageTestResourcesBeforeAndAfter();
 
@@ -32,7 +33,7 @@ describe(iconEndpointPath, () => {
             .subscribe(boilerplateSubscribe(fail, done));
     });
 
-    it ("POST should complete with UPDATE_ICON privilege", done => {
+    fit ("POST should complete with UPDATE_ICON privilege", done => {
         const testData = getTestIconData();
         const testAllIconDescriptor = getTestDataDescriptor();
 
@@ -67,6 +68,14 @@ describe(iconEndpointPath, () => {
                 oldIconName,
                 newIcon
             ))
+        .map(updatedIcon => expect(updatedIcon).toEqual(new IconDescriptor(
+            testAllIconDescriptor[0].name,
+            Set([
+                {format: "french", size: "great"},
+                {format: "french", size: "large"},
+                {format: "belge", size: "large"}
+            ])
+        )))
         .flatMap(() => describeAllIcons(session.requestBuilder()))
         .map(iconInfoList => expect(iconInfoList.toArray()).toEqual(expectedIconDescriptors))
         // Assert GIT status:

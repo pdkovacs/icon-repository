@@ -158,18 +158,18 @@ type AddIcon = (
     iconInfo: IconFile,
     modifiedBy: string,
     createSideEffect?: () => Observable<void>
-) => Observable<number>;
+) => Observable<IconDescriptor>;
 
 type AddIconProvider = (pool: Pool) => AddIcon;
 export const createIcon: AddIconProvider = pool => (iconInfo, modifiedBy, createSideEffect) => {
     const addIconSQL: string = "INSERT INTO icon(name, modified_by) " +
                                 "VALUES($1, $2) RETURNING id";
     const addIconParams = [iconInfo.name, modifiedBy];
-    return tx<number>(
+    return tx<IconDescriptor>(
         pool,
         executeQuery => executeQuery(addIconSQL, addIconParams)
                 .flatMap(addIconResult => {
-                    const iconId = addIconResult.rows[0].id;
+                    // const iconId = addIconResult.rows[0].id;
                     return insertIconFileIntoTable(executeQuery, {
                         name: iconInfo.name,
                         format: iconInfo.format,
@@ -177,7 +177,7 @@ export const createIcon: AddIconProvider = pool => (iconInfo, modifiedBy, create
                         content: iconInfo.content
                     }, modifiedBy)
                     .flatMap(() => createSideEffect ? createSideEffect() : Observable.of(void 0))
-                    .mapTo(iconId);
+                    .mapTo(new IconDescriptor(iconInfo.name, Set.of({format: iconInfo.format, size: iconInfo.size})));
                 })
     );
 };
@@ -187,15 +187,16 @@ type UpdateIcon = (
     newIcon: IconAttributes,
     modifiedBy: string,
     createSideEffect?: (oldIcon: IconDescriptor) => Observable<void>
-) => Observable<void>;
+) => Observable<IconDescriptor>;
 
 export const updateIcon: (pool: Pool) => UpdateIcon
 = pool => (oldIconName, newIcon, modifiedBy, createSideEffect) => {
-    const updateIconSQL = "UPDATE icon SET name = $1 WHERE name = $2";
+    const updateIconSQL = "UPDATE icon SET name = $1, modified_by = $2 WHERE name = $3";
     return tx(pool, (executeQuery: ExecuteQuery) =>
         describeIconBare(executeQuery, oldIconName, true)
-        .flatMap(iconDesc => executeQuery(updateIconSQL, [newIcon.name, oldIconName])
-            .flatMap(() => createSideEffect(iconDesc))));
+        .flatMap(iconDesc => executeQuery(updateIconSQL, [newIcon.name, modifiedBy, oldIconName])
+            .flatMap(() => createSideEffect(iconDesc)))
+        .flatMap(() => describeIconBare(executeQuery, newIcon.name)));
 };
 
 type DeleteIcon = (

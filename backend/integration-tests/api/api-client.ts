@@ -1,8 +1,8 @@
 import { SuperAgentRequest } from "superagent";
 import { Observable, Observer } from "rxjs";
 import { IconDTO } from "../../src/iconsHandlers";
-import { List } from "immutable";
-import { IconFile, IconFileDescriptor, IconAttributes } from "../../src/icon";
+import { List, Set } from "immutable";
+import { IconFile, IconFileDescriptor, IconAttributes, IconDescriptor } from "../../src/icon";
 
 export const authenticationBackdoorPath = "/backdoor/authentication";
 
@@ -102,8 +102,8 @@ export const getIconFile: (
 export const createIcon: (
     requestBuilder: RequestBuilder,
     initialIconFile: IconFile)
-=> Observable<number>
-= (requestBuilder, initialIconFile) => Observable.create((observer: Observer<number>) =>
+=> Observable<IconDescriptor>
+= (requestBuilder, initialIconFile) => Observable.create((observer: Observer<IconDescriptor>) =>
     requestBuilder
         .post("/icons")
         .field({name: initialIconFile.name})
@@ -115,8 +115,11 @@ export const createIcon: (
             `${initialIconFile.name}-${initialIconFile.size}.${initialIconFile.format}`
         )
         .then(
-            result => {
-                observer.next(result.body.id);
+            response => {
+                const iconDescriptor: IconDescriptor = response.body.iconFiles
+                    ? new IconDescriptor(response.body.name, Set(response.body.iconFiles))
+                    : undefined;
+                observer.next(iconDescriptor);
                 observer.complete();
             },
             error => observer.error(error)
@@ -127,14 +130,15 @@ export const updateIcon: (
     requestBuilder: RequestBuilder,
     oldIconName: string,
     newIcon: IconAttributes
-) => Observable<void>
-= (requestBuilder, oldIconName, newIcon) => Observable.create((observer: Observer<void>) =>
+) => Observable<IconDescriptor>
+= (requestBuilder, oldIconName, newIcon) => Observable.create((observer: Observer<IconDescriptor>) =>
     requestBuilder
     .put(`/icons/${oldIconName}`)
     .send(newIcon)
     .then(
-        result => {
-            observer.next(void 0);
+        response => {
+            console.log(">>>>>>>>>>>>>>>>>>>>>>>>>..", response.body);
+            observer.next(new IconDescriptor(response.body.name, Set(response.body.iconFiles)));
             observer.complete();
         },
         error => observer.error(error)

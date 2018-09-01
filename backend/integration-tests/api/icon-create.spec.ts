@@ -16,7 +16,7 @@ import { List } from "immutable";
 import { setAuth, createIcon, describeAllIcons, getFilePath, describeIcon } from "./api-client";
 import { IconDTO } from "../../src/iconsHandlers";
 import { getTestIconData, addTestData, getTestDataDescriptor, Icon } from "./icon-api-test-utils";
-import { IconFile, IconFileData } from "../../src/icon";
+import { IconFile, IconFileData, IconDescriptor } from "../../src/icon";
 
 describe(iconEndpointPath, () => {
 
@@ -61,6 +61,12 @@ describe(iconEndpointPath, () => {
         const session = agent();
         setAuth(session.requestBuilder(), privileges)
             .flatMap(() => createIcon(session.requestBuilder(), testIcon))
+            .map(iconDescriptor => {
+                expect(iconDescriptor.name).toEqual(testIcon.name);
+                const initialIconFile = iconDescriptor.iconFiles.first();
+                expect(initialIconFile.format).toEqual(testIcon.format);
+                expect(initialIconFile.size).toEqual(testIcon.size);
+            })
             .flatMap(() => describeAllIcons(session.requestBuilder()))
             .map(iconInfoList => {
                 expect(iconInfoList.size).toEqual(1);
