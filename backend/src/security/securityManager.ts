@@ -101,9 +101,13 @@ const loginSuccessHandlerProvider: (attachUserPrivileges: AttachUserPrivileges, 
     const ctxLogger = loggerFactory("loginSuccessHandlerProvider");
 
     attachUserPrivileges(req.session)
-    .subscribe(() => {
-            ctxLogger.info(`Redirecting to ${serverContextPath}`);
-            res.redirect(serverContextPath);
+    .subscribe(
+        () => {
+            const appRoot = serverContextPath.length && serverContextPath.length > 0
+                ? serverContextPath
+                : "/";
+            ctxLogger.info(`Redirecting to ${appRoot}`);
+            res.redirect(appRoot);
         },
         err => {
             ctxLogger.error("Error while setting privileges: %o", err);

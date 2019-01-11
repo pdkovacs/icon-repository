@@ -43,7 +43,10 @@ export default (
             configuration.oidc_access_token_url,
             configuration.oidc_ip_jwt_public_key_url,
             fromBase64(configuration.oidc_ip_jwt_public_key_pem_base64),
-            configuration.oidc_token_issuer)
+            configuration.oidc_token_issuer,
+            configuration.oidc_payload_propname as "access_token" | "id_token",
+            configuration.oidc_userid_propname,
+            configuration.oidc_aud_is_rexexp)
                     (req.session.oidcTokenRequestState, req.query.state, req.query.code)
         .toPromise()
         .then(

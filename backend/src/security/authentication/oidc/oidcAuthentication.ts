@@ -27,7 +27,10 @@ export default (
     accessTokenURL: string,
     jwtPublicKeyURL: string,
     jwtPublicKeyPEM: string,
-    tokenIssuer: string
+    tokenIssuer: string,
+    payloadPropname: "access_token" | "id_token",
+    useridPropname: string,
+    audIsRexexp: boolean
 ) => {
 
     const encodedClientCredentials = () => {
@@ -72,8 +75,9 @@ export default (
     = (token, publicKey) => {
         const ctxLogger = loggerFactory("oidcAuthentication#parseAuthorizationToken");
         let signatureValid: boolean;
+        const payloadToken: string = token[payloadPropname];
         try {
-            signatureValid = jose.jws.JWS.verify(token.id_token, publicKey, ["RS256"]);
+            signatureValid = jose.jws.JWS.verify(payloadToken, publicKey, ["RS256"]);
         } catch (error) {
             tokenVerificationFailed(ctxLogger, error);
         }
@@ -82,7 +86,7 @@ export default (
         } else {
             ctxLogger.verbose("Public key verification OK");
 
-            const tokenParts = token.id_token.split(".");
+            const tokenParts = payloadToken.split(".");
             ctxLogger.debug("Nr. of tokenParts: ", tokenParts.length);
 
             const payload = JSON.parse(fromBase64(tokenParts[1]));
@@ -90,7 +94,7 @@ export default (
 
             if (payload.iss === tokenIssuer) {
                 ctxLogger.verbose("Issuer OK");
-                if ((Array.isArray(payload.aud) && _.includes(payload.aud, clientID)) || payload.aud === clientID) {
+                if (checkAudience(payload.aud)) {
                     ctxLogger.verbose("Audience OK");
 
                     const now = Math.floor(Date.now() / 1000);
@@ -100,7 +104,7 @@ export default (
                         if (payload.exp >= now) {
                             ctxLogger.verbose("Expiration OK");
                             ctxLogger.verbose("Token valid!");
-                            return new Authentication(payload.sub, null);
+                            return new Authentication(payload[useridPropname], null);
                         } else {
                             tokenVerificationFailed(ctxLogger, "Invalid payload.exp", payload.exp);
                         }
@@ -116,6 +120,10 @@ export default (
         }
         tokenVerificationFailed(ctxLogger, "Something went wrong during token parsing");
     };
+
+    const checkAudience = (aud: string) => audIsRexexp
+            ? redirectURL.match(aud) && redirectURL.match(aud)[0] === redirectURL
+            : (Array.isArray(aud) && _.includes(aud, clientID)) || aud === clientID;
 
     const tokenVerificationFailed = (ctxtLogger: Logger, message: string, ...args: any[]) => {
         ctxtLogger.error(message, args);
